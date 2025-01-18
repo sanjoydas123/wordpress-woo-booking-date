@@ -57,15 +57,15 @@ The **Woo-Booking-Date Plugin** extends WooCommerce functionality by enabling dy
 
 ### 1. Calendar for Date Range Selection
 
-![Calendar for Date Range Selection](https://raw.githubusercontent.com/sanjoydas123/wordpress-woo-edit-credit-system/main/Screenshot_checkout_page.png)
+![Calendar for Date Range Selection](https://raw.githubusercontent.com/sanjoydas123/wordpress-woo-booking-date/main/Screenshot_checkout_page.png)
 
 ### 2. Admin Settings: Tour Booking Configuration
 
-![Admin Settings: Tour Booking Configuration](https://raw.githubusercontent.com/sanjoydas123/wordpress-woo-edit-credit-system/main/admin-settings-screenshot.png)
+![Admin Settings: Tour Booking Configuration](https://raw.githubusercontent.com/sanjoydas123/wordpress-woo-booking-date/main/admin-settings-screenshot.png)
 
 ### 3. WooCommerce Order: Booking Details
 
-![WooCommerce Order: Booking Details](https://raw.githubusercontent.com/sanjoydas123/wordpress-woo-edit-credit-system/main/order-details-screenshot.png)
+![WooCommerce Order: Booking Details](https://raw.githubusercontent.com/sanjoydas123/wordpress-woo-booking-date/main/order-details-screenshot.png)
 
 ## Support
 
