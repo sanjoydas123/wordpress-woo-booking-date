@@ -6,6 +6,10 @@ class Tour_Booking_Validation
     {
         add_action('woocommerce_checkout_process', [$this, 'validate_fields']);
         add_action('woocommerce_checkout_update_order_meta', [$this, 'save_fields']);
+
+        add_action('woocommerce_before_cart_item_quantity_zero', [$this, 'clear_cart_before_add'], 10, 1);
+        add_filter('woocommerce_add_to_cart_validation', [$this, 'clear_cart_before_add'], 10, 2);
+        add_filter('woocommerce_add_to_cart', [$this, 'ensure_single_product_in_cart'], 10, 6);
     }
 
     public function validate_fields()
@@ -76,6 +80,8 @@ class Tour_Booking_Validation
 
     public function save_fields($order_id)
     {
+        $order = wc_get_order($order_id); // Get the order object
+
         if (!empty($_POST['cust_tour_dates'])) {
             $selected_dates = sanitize_text_field($_POST['cust_tour_dates']);
 
@@ -87,13 +93,35 @@ class Tour_Booking_Validation
 
                 if ($start_date && $end_date) {
                     $formatted_dates = $start_date->format('Y-m-d') . ' to ' . $end_date->format('Y-m-d');
-                    update_post_meta($order_id, '_cust_tour_dates', $formatted_dates);
+                    $order->update_meta_data('_cust_tour_dates', $formatted_dates);
                 }
             }
         }
 
         if (!empty($_POST['cust_tour_members'])) {
-            update_post_meta($order_id, '_cust_tour_members', intval($_POST['cust_tour_members']));
+            $order->update_meta_data('_cust_tour_members', intval($_POST['cust_tour_members']));
         }
+
+        $order->save();
+    }
+
+    // Clear the cart before adding a new product
+    public function clear_cart_before_add($passed, $product_id)
+    {
+        // Empty the cart before adding a new product
+        WC()->cart->empty_cart();
+
+        // Return true to continue adding the product
+        return $passed;
+    }
+
+    // Ensure only one product with quantity 1 in the cart
+    public function ensure_single_product_in_cart($cart_item_key, $product_id, $quantity, $variation_id, $variation, $cart_item_data)
+    {
+        $cart = WC()->cart;
+        // Set the quantity to 1 for the added product
+        $cart->set_quantity($cart_item_key, 1);
+
+        return $cart_item_key;
     }
 }
