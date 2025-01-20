@@ -10,12 +10,17 @@ class Tour_Booking_Display
         // Add custom columns to the orders list page in Admin
         add_filter('manage_woocommerce_page_wc-orders_columns', [$this, 'add_custom_order_columns']);
         add_action('manage_woocommerce_page_wc-orders_custom_column', [$this, 'populate_custom_order_columns'], 10, 2);
+
+        // Other hooks...
+        add_filter('woocommerce_account_orders_columns', [$this, 'add_user_order_list_columns']);
+        add_action('woocommerce_my_account_my_orders_column_cust_tour_dates', [$this, 'populate_user_order_list_tour_dates']);
+        add_action('woocommerce_my_account_my_orders_column_cust_tour_members', [$this, 'populate_user_order_list_tour_members']);
     }
 
     public function display_in_admin($order)
     {
-        $cust_tour_dates = get_post_meta($order->get_id(), '_cust_tour_dates', true);
-        $cust_tour_members = get_post_meta($order->get_id(), '_cust_tour_members', true);
+        $cust_tour_dates = $order->get_meta('_cust_tour_dates', true);
+        $cust_tour_members = $order->get_meta('_cust_tour_members', true);
         echo '<h2>' . __('Tour Booking Details') . '</h2>';
         if ($cust_tour_dates) {
             $parsed_dates = explode(' to ', $cust_tour_dates);
@@ -35,7 +40,7 @@ class Tour_Booking_Display
 
     public function display_in_user_order($order)
     {
-        $cust_tour_dates = get_post_meta($order->get_id(), '_cust_tour_dates', true);
+        $cust_tour_dates = $order->get_meta('_cust_tour_dates', true);
         $convertDate = '';
         if ($cust_tour_dates) {
             $parsed_dates = explode(' to ', $cust_tour_dates);
@@ -48,7 +53,7 @@ class Tour_Booking_Display
             }
         }
 
-        $cust_tour_members = get_post_meta($order->get_id(), '_cust_tour_members', true);
+        $cust_tour_members = $order->get_meta('_cust_tour_members', true);
 
         if ($cust_tour_dates || $cust_tour_members) {
             echo '<h2>' . __('Tour Booking Details') . '</h2>';
@@ -73,11 +78,12 @@ class Tour_Booking_Display
     }
 
     // Populate custom columns with data in the order list page
-    public function populate_custom_order_columns($column, $order_id)
+    public function populate_custom_order_columns($column, $order)
     {
-        $order = wc_get_order($order_id);
+        // $order_id = $order->get_id();
         if ('cust_tour_dates' === $column) {
-            $cust_tour_dates = $order->get_meta('_cust_tour_dates');
+            // $cust_tour_dates = get_post_meta($order_id, '_cust_tour_dates', true);
+            $cust_tour_dates = $order->get_meta('_cust_tour_dates', true);
 
             if (!empty($cust_tour_dates)) {
                 $parsed_dates = explode(' to ', $cust_tour_dates);
@@ -96,10 +102,55 @@ class Tour_Booking_Display
         }
 
         if ('cust_tour_members' === $column) {
-            $cust_tour_members = $order->get_meta('_cust_tour_members');
+            $cust_tour_members = $order->get_meta('_cust_tour_members', true);
             echo !empty($cust_tour_members)
                 ? esc_html($cust_tour_members) . ' Members'
                 : '-';
         }
+    }
+
+    // Add custom columns to the user's order list
+    public function add_user_order_list_columns($columns)
+    {
+        // Add custom columns after the 'order-status' column
+        $new_columns = [];
+        foreach ($columns as $key => $value) {
+            $new_columns[$key] = $value;
+            if ('order-status' === $key) {
+                $new_columns['cust_tour_dates'] = __('Tour Dates', 'text-domain');
+                $new_columns['cust_tour_members'] = __('Tour Members', 'text-domain');
+            }
+        }
+        return $new_columns;
+    }
+
+    // Populate 'Tour Dates' column
+    public function populate_user_order_list_tour_dates($order)
+    {
+        $cust_tour_dates = $order->get_meta('_cust_tour_dates', true);
+
+        if (!empty($cust_tour_dates)) {
+            $parsed_dates = explode(' to ', $cust_tour_dates);
+            if (count($parsed_dates) === 2) {
+                $start_date = DateTime::createFromFormat('Y-m-d', trim($parsed_dates[0]));
+                $end_date = DateTime::createFromFormat('Y-m-d', trim($parsed_dates[1]));
+                echo $start_date && $end_date
+                    ? esc_html($start_date->format('d M Y') . ' - ' . $end_date->format('d M Y'))
+                    : esc_html($cust_tour_dates);
+            } else {
+                echo esc_html($cust_tour_dates);
+            }
+        } else {
+            echo '-';
+        }
+    }
+
+    // Populate 'Tour Members' column
+    public function populate_user_order_list_tour_members($order)
+    {
+        $cust_tour_members = $order->get_meta('_cust_tour_members', true);
+        echo !empty($cust_tour_members)
+            ? esc_html($cust_tour_members) . ' Members'
+            : '-';
     }
 }
